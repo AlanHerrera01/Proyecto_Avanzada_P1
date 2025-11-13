@@ -29,10 +29,12 @@ dependencies {
 
     // H2 para pruebas en memoria
     testImplementation 'com.h2database:h2'
+    runtimeOnly 'com.h2database:h2'
 
-    runtimeOnly('com.h2database:h2')
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+
+    systemProperty "spring.profiles.active", "test"
 }
