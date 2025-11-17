@@ -20,35 +20,49 @@ jobs:
     steps:
       - name: Desplegar en Render y verificar estado
         id: deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
-          echo "Paso 1: Intentando iniciar el despliegue en Render..."
-          # Iniciar el despliegue y capturar el código de estado HTTP
+          echo "Paso 1: Iniciando el despliegue en Render..."
           http_status=$(curl --request POST \
-            --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            --url "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
             --header "Accept: application/json" \
             --header "Content-Type: application/json" \
-            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header "Authorization: Bearer ${RENDER_API_KEY}" \
             --data '{"clearCache": "do_not_clear"}' \
             --output response.json \
             --write-out "%{http_code}")
 
           echo "Paso 2: La API de Render respondió con el código de estado HTTP: $http_status"
-          
           deploy_response=$(cat response.json)
           echo "Paso 3: Contenido de la respuesta de la API:"
           echo "$deploy_response"
 
           if [ "$http_status" -ne 201 ] && [ "$http_status" -ne 202 ]; then
-            echo "Error: El código de estado no es 201 ni 202. El despliegue no se pudo iniciar."
+            echo "Error: El despliegue no se pudo iniciar (código de estado: $http_status)."
             exit 1
           fi
 
-          echo "Paso 4: Intentando extraer el ID del despliegue usando jq..."
           deploy_id=$(echo "$deploy_response" | jq -r '.id')
 
           if [ -z "$deploy_id" ] || [ "$deploy_id" == "null" ]; then
-            echo "Error: No se pudo extraer un 'id' válido de la respuesta de la API."
-            echo "Causa probable: ¿Está 'Auto-Deploy' desactivado en Render? Si está activado, puede causar conflictos."
+            echo "Paso 4: No se encontró un ID en la respuesta inicial. Consultando la lista de despliegues..."
+            sleep 5 # Dar tiempo a Render para que procese la solicitud
+            
+            deploys_list=$(curl -s --request GET \
+              --url "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys?limit=1" \
+              --header "Accept: application/json" \
+              --header "Authorization: Bearer ${RENDER_API_KEY}")
+            
+            echo "Respuesta de la lista de despliegues:"
+            echo "$deploys_list"
+            
+            deploy_id=$(echo "$deploys_list" | jq -r '.[0].deploy.id')
+          fi
+
+          if [ -z "$deploy_id" ] || [ "$deploy_id" == "null" ]; then
+            echo "Error: No se pudo obtener un ID de despliegue válido."
             exit 1
           fi
 
@@ -58,9 +72,9 @@ jobs:
           while true; do
             sleep 30
             deploy_status=$(curl -s --request GET \
-              --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/$deploy_id" \
+              --url "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys/$deploy_id" \
               --header "Accept: application/json" \
-              --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" | jq -r '.status')
+              --header "Authorization: Bearer ${RENDER_API_KEY }}" | jq -r '.status')
 
             echo "Estado actual del despliegue: $deploy_status"
 
