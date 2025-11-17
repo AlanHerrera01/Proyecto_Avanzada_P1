@@ -24,12 +24,14 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// Dependencias de test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // H2 para pruebas en memoria
-    testImplementation 'com.h2database:h2'
-    runtimeOnly 'com.h2database:h2'
+	// H2 para pruebas en memoria y también como driver runtime para el perfil 'render'
+	implementation 'com.h2database:h2'
+	testImplementation 'com.h2database:h2'
 
 }
 
