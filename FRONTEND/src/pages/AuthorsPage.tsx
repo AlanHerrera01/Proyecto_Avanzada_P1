@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, Edit2, Trash2, Users } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+
 import { Modal } from '../components/ui/Modal';
 import { authorService } from '../services/authorService';
 import type { Author, AuthorFormData } from '../types';

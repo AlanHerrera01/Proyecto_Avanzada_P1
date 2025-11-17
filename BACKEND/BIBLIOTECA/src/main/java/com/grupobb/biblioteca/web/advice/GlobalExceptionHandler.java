@@ -47,6 +47,9 @@ public class GlobalExceptionHandler {
     //400 por validaciones
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex){
+        // Imprimimos la traza de la excepción en la consola del servidor para depuración
+        ex.printStackTrace();
+
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -60,6 +63,9 @@ public class GlobalExceptionHandler {
     //500 generico
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAll(Exception ex) {
+        // Imprimimos la traza de la excepción en la consola del servidor para depuración
+        ex.printStackTrace();
+
         // Atrapa cualquier excepción no manejada y devuelve una respuesta 500 simple.
         // En una aplicación real podrías mapear distintas excepciones a códigos HTTP más precisos
         // y devolver un JSON con más detalles (timestamp, path, error code, etc.).

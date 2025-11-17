@@ -1,5 +1,6 @@
 package com.grupobb.biblioteca.dto.Book;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -9,6 +10,7 @@ public class BookRequestData {
     private String titulo;
 
     @NotNull(message = "El autorId es obligatorio")
+    @JsonProperty("autorId") // Indica a Jackson que use "autorId" en el JSON
     private Long autorId;
 
     // Opcional: permite controlar si el libro está disponible o no.

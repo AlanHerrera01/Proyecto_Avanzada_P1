@@ -59,13 +59,10 @@ export const LoansPage: React.FC = () => {
   const onSubmit = async (data: LoanFormData) => {
     try {
       setLoading(true);
-      const formData = {
-        usuarioId: Number(data.usuarioId),
-        libroId: Number(data.libroId),
-      };
-      await loanService.create(formData);
+      // Los IDs ya son números gracias a valueAsNumber en el registro
+      await loanService.create(data);
       await loadLoans();
-      await loadBooks();
+      await loadBooks(); // Recargar libros para actualizar disponibilidad
       handleCloseModal();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al crear préstamo');
@@ -90,7 +87,7 @@ export const LoansPage: React.FC = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    reset({ usuarioId: 0, libroId: 0 });
+    reset({ usuarioId: undefined, libroId: undefined });
   };
 
   const formatDate = (dateString: string) => {
@@ -192,33 +189,32 @@ export const LoansPage: React.FC = () => {
                 label="Usuario"
                 {...register('usuarioId', { 
                   required: 'El usuario es obligatorio',
+                  valueAsNumber: true,
+                  validate: value => value > 0 || 'Debes seleccionar un usuario'
                 })}
-                options={users.map(u => ({ value: u.id, label: `${u.nombre} (${u.email})` }))}
+                options={users.map(u => ({ value: u.id, label: `${u.nombre} (${u.email})` }))
+                }
                 error={errors.usuarioId?.message}
               />
             </div>
             <div className="mb-3">
               <Select
-                label="Libro"
-                {...register('libroId', { 
+                label="Libro Disponible"
+                {...register('libroId', {
                   required: 'El libro es obligatorio',
+                  valueAsNumber: true,
+                  validate: value => value > 0 || 'Debes seleccionar un libro'
                 })}
                 options={books.map(b => ({ value: b.id, label: b.titulo }))}
                 error={errors.libroId?.message}
               />
             </div>
-            {books.length === 0 && (
-              <div className="alert alert-warning d-flex align-items-center gap-2" role="alert">
-                <svg className="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Advertencia:"><use xlinkHref="#exclamation-triangle-fill" /></svg>
-                <span>No hay libros disponibles para préstamo</span>
-              </div>
-            )}
             <div className="d-flex justify-content-end gap-2 pt-3 border-top">
               <Button type="button" variant="secondary" onClick={handleCloseModal}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={loading || books.length === 0}>
-                {loading ? 'Guardando...' : 'Registrar Préstamo'}
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Guardando...' : 'Crear Préstamo'}
               </Button>
             </div>
           </form>

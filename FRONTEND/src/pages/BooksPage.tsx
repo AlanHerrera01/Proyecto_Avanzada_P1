@@ -47,16 +47,14 @@ export const BooksPage: React.FC = () => {
   };
 
   const onSubmit = async (data: BookFormData) => {
+    console.log('Datos enviados:', data); // Añadimos este log para depurar
     try {
       setLoading(true);
-      const formData = {
-        ...data,
-        autorId: Number(data.autorId),
-      };
+      // El valor de autorId ya es un número gracias a react-hook-form y el <select>
       if (editingBook) {
-        await bookService.update(editingBook.id, formData);
+        await bookService.update(editingBook.id, data);
       } else {
-        await bookService.create(formData);
+        await bookService.create(data);
       }
       await loadBooks();
       handleCloseModal();
@@ -83,14 +81,19 @@ export const BooksPage: React.FC = () => {
 
   const handleEdit = (book: Book) => {
     setEditingBook(book);
-    reset(book);
+    // Aseguramos que el autorId se establezca correctamente en el formulario
+    reset({
+      titulo: book.titulo,
+      autorId: book.autorId,
+    });
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingBook(null);
-    reset({ titulo: '', autorId: 0 });
+    // Limpiamos el formulario a sus valores por defecto
+    reset({ titulo: '', autorId: undefined });
   };
 
   return (
@@ -184,7 +187,9 @@ export const BooksPage: React.FC = () => {
               <Select
                 label="Autor"
                 {...register('autorId', { 
-                  required: 'El autor es obligatorio',
+                  required: 'Debes seleccionar un autor',
+                  valueAsNumber: true, // Convierte el valor a número automáticamente
+                  validate: value => value > 0 || 'Debes seleccionar un autor'
                 })}
                 options={authors.map(a => ({ value: a.id, label: a.nombre }))}
                 error={errors.autorId?.message}
