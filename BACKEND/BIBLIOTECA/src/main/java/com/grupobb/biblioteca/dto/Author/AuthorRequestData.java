@@ -7,7 +7,7 @@ public class AuthorRequestData {
     @NotBlank(message = "El nombre del autor es obligatorio")
     private String nombre;
 
-    // Nacionalidad opcional
+    // Nacionalidad opcional aunque se puede validar si es necesario
     private String nacionalidad;
 
     public String getNombre() {
